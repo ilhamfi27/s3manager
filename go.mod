@@ -1,6 +1,6 @@
 module github.com/cloudlena/s3manager
 
-go 1.21.3
+go 1.21.4
 
 require (
 	github.com/cloudlena/adapters v0.0.0-20231026063741-fb9c991fff9e
