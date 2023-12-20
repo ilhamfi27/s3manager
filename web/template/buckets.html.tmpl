@@ -41,11 +41,13 @@
     </div>
 </div>
 
+{{ if .AllowCreateBucket }}
 <div class="fixed-action-btn">
     <button type="button" class="btn-floating btn-large red modal-trigger" data-target="modal-create-bucket">
         <i class="material-icons large">add</i>
     </button>
 </div>
+{{ end }}
 
 <div id="modal-create-bucket" class="modal">
     <form id="create-bucket-form">

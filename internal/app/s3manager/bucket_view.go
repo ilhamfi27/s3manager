@@ -64,6 +64,7 @@ func HandleBucketView(s3 S3, templates fs.FS, allowDelete bool, listRecursive bo
 			}
 			objs = append(objs, obj)
 		}
+		fmt.Println(allowDelete)
 		data := pageData{
 			BucketName:  bucketName,
 			Objects:     objs,

@@ -24,26 +24,7 @@ var templateFS embed.FS
 //go:embed web/static
 var staticFS embed.FS
 
-type configuration struct {
-	Endpoint            string
-	UseIam              bool
-	IamEndpoint         string
-	AccessKeyID         string
-	SecretAccessKey     string
-	Region              string
-	AllowDelete         bool
-	ForceDownload       bool
-	UseSSL              bool
-	SkipSSLVerification bool
-	SignatureType       string
-	ListRecursive       bool
-	Port                string
-	Timeout             int32
-	SseType             string
-	SseKey              string
-}
-
-func parseConfiguration() configuration {
+func parseConfiguration() s3manager.Configuration {
 	var accessKeyID, secretAccessKey, iamEndpoint string
 
 	viper.AutomaticEnv()
@@ -66,6 +47,12 @@ func parseConfiguration() configuration {
 			log.Fatal("please provide SECRET_ACCESS_KEY")
 		}
 	}
+
+	viper.SetDefault("BUCKET", "")
+	bucket := viper.GetString("BUCKET")
+
+	viper.SetDefault("ALLOW_CREATE_BUCKET", true)
+	allowCreateBucket := viper.GetBool("ALLOW_CREATE_BUCKET")
 
 	region := viper.GetString("REGION")
 
@@ -98,14 +85,16 @@ func parseConfiguration() configuration {
 	viper.SetDefault("SSE_KEY", "")
 	sseKey := viper.GetString("SSE_KEY")
 
-	return configuration{
+	return s3manager.Configuration{
 		Endpoint:            endpoint,
 		UseIam:              useIam,
 		IamEndpoint:         iamEndpoint,
 		AccessKeyID:         accessKeyID,
 		SecretAccessKey:     secretAccessKey,
 		Region:              region,
+		Bucket:              bucket,
 		AllowDelete:         allowDelete,
+		AllowCreateBucket:   allowCreateBucket,
 		ForceDownload:       forceDownload,
 		UseSSL:              useSSL,
 		SkipSSLVerification: skipSSLVerification,
@@ -175,7 +164,7 @@ func main() {
 	r := mux.NewRouter()
 	r.Handle("/", http.RedirectHandler("/buckets", http.StatusPermanentRedirect)).Methods(http.MethodGet)
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.FS(statics)))).Methods(http.MethodGet)
-	r.Handle("/buckets", s3manager.HandleBucketsView(s3, templates, configuration.AllowDelete)).Methods(http.MethodGet)
+	r.Handle("/buckets", s3manager.HandleBucketsView(s3, templates, configuration.AllowDelete, configuration.AllowCreateBucket, configuration.Bucket)).Methods(http.MethodGet)
 	r.PathPrefix("/buckets/").Handler(s3manager.HandleBucketView(s3, templates, configuration.AllowDelete, configuration.ListRecursive)).Methods(http.MethodGet)
 	r.Handle("/api/buckets", s3manager.HandleCreateBucket(s3)).Methods(http.MethodPost)
 	if configuration.AllowDelete {
