@@ -27,7 +27,7 @@ func HandleBucketsView(s3 S3, templates fs.FS, allowDelete bool, allowCreateBuck
 		if bucketName != "" {
 			b := buckets
 			for i := range buckets {
-				if buckets[i].Name == bucketName {
+				if b[i].Name == bucketName {
 					buckets = []minio.BucketInfo{}
 					buckets = append(buckets, b[i])
 				}
